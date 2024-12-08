@@ -5,24 +5,19 @@ pipeline {
             agent {
                 docker {
                     image 'maven:3.9.5'
-                    args '-u $(id -u):$(id -g) -v ${WORKSPACE}/.m2:/root/.m2'
+                    args '-u 1000:1000 -v ${WORKSPACE}/.m2:/root/.m2'
                 }
             }
             steps {
                 script {
-                    withSonarQubeEnv('sonar') {
-                        // Print environment variables for debugging
+                    withSonarQubeEnv(credentialsId: 'jenkins') {
                         sh 'printenv'
-                        
-                        // Perform SonarQube scan
-                        sh 'mvn clean install sonar:sonar'
+                        sh 'mvn sonar:sonar'
                     }
-
-                    // Check SonarQube Quality Gate
                     timeout(time: 5, unit: 'MINUTES') {
                         def qg = waitForQualityGate()
                         if (qg.status != 'OK') {
-                            error "Code did not meet quality gate criteria."
+                            error "Code did not meet quality gate"
                         }
                     }
                 }
@@ -31,7 +26,7 @@ pipeline {
     }
     post {
         always {
-            cleanWs() // Cleanup workspace after the build
+            cleanWs()
         }
     }
 }
