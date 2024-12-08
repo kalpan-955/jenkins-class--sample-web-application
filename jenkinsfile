@@ -13,6 +13,14 @@ pipeline{
                      sh 'printenv'
                      sh 'mvn sonar:sonar'
                   }
+                  timeout(5){
+                   def qg = waitForQualityGate()
+                   if (qg.status != 'ok'){
+                       error "code didnt met quality gate"
+                   }
+                   
+                  }
+            
                 }
             }
         }
