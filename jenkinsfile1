@@ -1,19 +1,35 @@
 pipeline{
     agent any
+    environment{
+        script_options = "--clean 30"
+    }
     stages{
         stage('clone'){
-            agent {
-                docker {
+            agent{
+                docker{
                     image 'maven'
                 }
             }
-            steps{
-                sh 'mvn --version'
+            environment{
+                stage_script_options = "--clean 30"
+    
             }
-        }
-        stage('build'){
+
             steps{
-                sh 'echo build'
+                script{
+                     sh 'mvn --version'
+                     sh 'printenv'
+                     sh 'echo &script_options'
+                     currentBuild.description = "the branch built + $GIT_BRANCH"
+
+                }
+               
+            }
+            post{
+                always
+                {
+                    echo "this is from stage"
+                }
             }
         }
     }
